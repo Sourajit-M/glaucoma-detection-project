@@ -1,28 +1,69 @@
 [project]
-name = "glaucoma-detection-project"
+name = "glaucoma-detection"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.11"
+description = "ML-Based Glaucoma Detection & Structural Analysis System"
+requires-python = ">=3.10"
+
 dependencies = [
+    # ── Core ML ────────────────────────────────────────────────────
+    "torch>=2.3.0",
+    "torchvision>=0.18.0",
+    "scikit-learn>=1.3.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+
+    # ── Image processing ───────────────────────────────────────────
+    "opencv-python>=4.8.0",
+    "Pillow>=10.0.0",
     "albumentations>=1.3.0",
-    "grad-cam>=1.4.8",
+
+    # ── Classical ML features ──────────────────────────────────────
+    "scikit-image>=0.21.0",
+
+    # ── Visualisation ──────────────────────────────────────────────
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+
+    # ── Experiment tracking ────────────────────────────────────────
+    "tensorboard>=2.13.0",
+
+    # ── Utilities ──────────────────────────────────────────────────
+    "tqdm>=4.65.0",
+    "joblib>=1.3.0",
+    "PyYAML>=6.0",
+    "python-dotenv>=1.0.0",
+
+    # ── Notebooks ──────────────────────────────────────────────────
+    "jupyter>=1.0.0",
     "ipykernel>=6.0.0",
     "ipywidgets>=8.0.0",
-    "joblib>=1.3.0",
-    "jupyter>=1.0.0",
-    "matplotlib>=3.7.0",
-    "numpy>=1.24.0",
-    "opencv-python>=4.8.0",
-    "pandas>=2.0.0",
-    "pillow>=10.0.0",
-    "pyyaml>=6.0",
-    "scikit-image>=0.21.0",
-    "scikit-learn>=1.3.0",
-    "seaborn>=0.12.0",
+
+    # ── Segmentation (U-Net) ───────────────────────────────────────
     "segmentation-models-pytorch>=0.3.3",
-    "tensorboard>=2.13.0",
-    "torch>=2.0.0",
-    "torchvision>=0.15.0",
-    "tqdm>=4.65.0",
+
+    # ── Grad-CAM ───────────────────────────────────────────────────
+    "grad-cam>=1.4.8",
 ]
+
+# ─────────────────────────────────────────────────────────────────
+# PyTorch CUDA source + index declaration MUST both be present.
+#
+# CUDA 13.2 (your nvidia-smi) is the driver version — it is
+# backward-compatible with PyTorch CUDA 12.4 (cu124), which is the
+# latest build PyTorch ships. Driver >= 12.4 is all that is needed.
+#
+# Index name in [tool.uv.sources] must exactly match the name in
+# [[tool.uv.index]] — that was the root cause of the previous error.
+# ─────────────────────────────────────────────────────────────────
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu124" },
+]
+torchvision = [
+    { index = "pytorch-cu124" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url  = "https://download.pytorch.org/whl/cu124"
+explicit = true
