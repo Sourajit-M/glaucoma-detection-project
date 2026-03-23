@@ -1,14 +1,35 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
-build/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
 dist/
-wheels/
-*.egg-info
+build/
+.eggs/
 
 # Virtual environments
 .venv
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
 
 # Data
-datasets
+datasets/
+*.jpg
+*.jpeg
+*.png
+*.bmp
 .env
+
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Large model files
+*.pth
+*.pt
+#outputs
+outputs/models
+

@@ -1,0 +1,5 @@
+model,auc,sensitivity,specificity,f1,accuracy
+LogisticRegression,0.7126,0.67,0.6491,0.6518,0.659
+SVM_RBF,0.7888,0.756,0.6818,0.7179,0.7171
+RandomForest,0.7674,0.714,0.6891,0.6946,0.701
+CNN (ResNet18),0.9445,0.932,0.8164,0.8735,0.8714
