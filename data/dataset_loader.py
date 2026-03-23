@@ -89,6 +89,7 @@ def load_acrima() -> pd.DataFrame:
         )
 
     df = pd.DataFrame(records)
+    df["label"] = df["label"].astype(int)
     df = _assign_splits(df)
     _print_summary("ACRIMA", df)
     return df
@@ -133,6 +134,7 @@ def load_rimone() -> pd.DataFrame:
                 })
 
     df = pd.DataFrame(records)
+    df["label"] = df["label"].astype(int)
 
     # Carve validation out of train
     train_mask = df["split"] == "train"
@@ -205,14 +207,22 @@ def load_airogs(max_samples: int = None) -> pd.DataFrame:
         train_df = df[df["split"] == "train"]
         other_df = df[df["split"] != "train"]
         n_per_class = max_samples // 2
-        train_capped = (
-            train_df
-            .groupby("label", group_keys=False)
-            .apply(lambda x: x.sample(min(len(x), n_per_class), random_state=SEED))
-            .reset_index(drop=True)
-        )
+
+        # Sample each class separately then concatenate — avoids NaN rows
+        # that groupby().apply() can introduce in newer pandas versions
+        parts = []
+        for lbl in [0, 1]:
+            cls_df = train_df[train_df["label"] == lbl]
+            parts.append(cls_df.sample(min(len(cls_df), n_per_class), random_state=SEED))
+        train_capped = pd.concat(parts, ignore_index=True)
         df = pd.concat([train_capped, other_df], ignore_index=True)
 
+    # Drop any rows with missing labels before casting (defensive)
+    before = len(df)
+    df = df.dropna(subset=["label"]).copy()
+    if len(df) < before:
+        print(f"  [AIROGS] Dropped {before - len(df)} rows with missing labels.")
+    df["label"] = df["label"].astype(int)
     _print_summary("AIROGS", df)
     return df
 
