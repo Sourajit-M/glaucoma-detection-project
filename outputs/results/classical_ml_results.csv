@@ -1,0 +1,4 @@
+model,cv_auc,auc,sensitivity,specificity,f1,accuracy,tp,fp,tn,fn,best_params
+LogisticRegression,0.7720 ± 0.0113,0.7126,0.67,0.6491,0.6518,0.659,335,193,357,165,"{'clf__C': 1.0, 'clf__penalty': 'l2'}"
+SVM_RBF,0.8490 ± 0.0142,0.7888,0.756,0.6818,0.7179,0.7171,378,175,375,122,"{'clf__C': 10.0, 'clf__gamma': 'auto'}"
+RandomForest,0.8425 ± 0.0117,0.7674,0.714,0.6891,0.6946,0.701,357,171,379,143,"{'clf__max_depth': 20, 'clf__min_samples_split': 2, 'clf__n_estimators': 300}"

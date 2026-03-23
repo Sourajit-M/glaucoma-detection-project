@@ -1,0 +1,4 @@
+Model,AUC,Sensitivity,Specificity,F1,Accuracy,CV AUC (5-fold)
+LogisticRegression,0.7126,0.67,0.6491,0.6518,0.659,0.7720 ± 0.0113
+SVM_RBF,0.7888,0.756,0.6818,0.7179,0.7171,0.8490 ± 0.0142
+RandomForest,0.7674,0.714,0.6891,0.6946,0.701,0.8425 ± 0.0117
