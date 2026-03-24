@@ -220,3 +220,138 @@ def get_loss_fn(
         weight=class_weights,
         label_smoothing=label_smoothing,
     )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# EFFICIENTNET-B0 MODEL
+# ─────────────────────────────────────────────────────────────────────
+class GlaucomaEfficientNet(nn.Module):
+    """
+    EfficientNet-B0 with a custom glaucoma classification head.
+
+    Architecture:
+        EfficientNet-B0 backbone (pretrained on ImageNet)
+            └─ AdaptiveAvgPool2d (built-in)
+            └─ Dropout(p)
+            └─ Linear(1280 → num_classes)
+
+    EfficientNet-B0 outputs a 1280-dim feature vector.
+    It is more parameter-efficient than ResNet18 (5.3M vs 11.7M params)
+    while matching or exceeding accuracy on medical imaging benchmarks.
+
+    Same freeze/unfreeze API as GlaucomaResNet — trainer.py unchanged.
+    """
+
+    def __init__(
+        self,
+        num_classes: int = NUM_CLASSES,
+        dropout: float   = DROPOUT_RATE,
+        pretrained: bool = USE_PRETRAINED,
+    ):
+        super().__init__()
+
+        weights          = models.EfficientNet_B0_Weights.IMAGENET1K_V1 if pretrained else None
+        backbone         = models.efficientnet_b0(weights=weights)
+
+        # EfficientNet classifier head is backbone.classifier[1]
+        self.feature_dim = backbone.classifier[1].in_features   # 1280
+        backbone.classifier = nn.Identity()
+        self.backbone    = backbone
+
+        self.head = nn.Sequential(
+            nn.Dropout(p=dropout),
+            nn.Linear(self.feature_dim, num_classes),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        features = self.backbone(x)    # (B, 1280)
+        logits   = self.head(features) # (B, num_classes)
+        return logits
+
+    def freeze_backbone(self):
+        for param in self.backbone.parameters():
+            param.requires_grad = False
+        print("EfficientNet-B0 backbone frozen — training head only.")
+
+    def unfreeze_backbone(self):
+        for param in self.backbone.parameters():
+            param.requires_grad = True
+        print("EfficientNet-B0 backbone unfrozen — full fine-tuning.")
+
+    def count_trainable_params(self) -> int:
+        return sum(p.numel() for p in self.parameters() if p.requires_grad)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# UNIFIED FACTORY  (arch-aware)
+# ─────────────────────────────────────────────────────────────────────
+def build_model_arch(
+    arch: str        = "resnet18",
+    num_classes: int = NUM_CLASSES,
+    dropout: float   = DROPOUT_RATE,
+    pretrained: bool = USE_PRETRAINED,
+    freeze_backbone: bool = True,
+) -> nn.Module:
+    """
+    Build any supported glaucoma classification model by name.
+
+    Supported arch values:
+        'resnet18'        — GlaucomaResNet      (512-dim,  11.7M params)
+        'efficientnet_b0' — GlaucomaEfficientNet (1280-dim,  5.3M params)
+
+    Returns model on DEVICE with the same .backbone / .head structure.
+    trainer.py works unchanged with both architectures.
+    """
+    arch = arch.lower().replace("-", "_")
+
+    if arch == "resnet18":
+        model      = GlaucomaResNet(num_classes, dropout, pretrained)
+        arch_label = "ResNet18"
+    elif arch == "efficientnet_b0":
+        model      = GlaucomaEfficientNet(num_classes, dropout, pretrained)
+        arch_label = "EfficientNet-B0"
+    else:
+        raise ValueError(
+            f"Unknown arch '{arch}'. Supported: 'resnet18', 'efficientnet_b0'"
+        )
+
+    if freeze_backbone:
+        model.freeze_backbone()
+
+    model = model.to(DEVICE)
+
+    total     = sum(p.numel() for p in model.parameters())
+    trainable = model.count_trainable_params()
+    print(f"Architecture : {arch_label}")
+    print(f"Device       : {DEVICE}")
+    print(f"Params       : {total:,} total  |  {trainable:,} trainable")
+    return model
+
+
+def get_optimizer_for_arch(model: nn.Module, stage: int = 1) -> tuple:
+    """
+    Optimizer + scheduler for any model with .backbone and .head attributes.
+    Identical logic to get_optimizer() — works for both ResNet and EfficientNet.
+    """
+    if stage == 1:
+        optimizer = torch.optim.AdamW(
+            filter(lambda p: p.requires_grad, model.parameters()),
+            lr=1e-3,
+            weight_decay=WEIGHT_DECAY,
+        )
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=10, eta_min=1e-5
+        )
+    elif stage == 2:
+        param_groups = [
+            {"params": model.backbone.parameters(), "lr": LEARNING_RATE},
+            {"params": model.head.parameters(),     "lr": LEARNING_RATE * 10},
+        ]
+        optimizer = torch.optim.AdamW(param_groups, weight_decay=WEIGHT_DECAY)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=20, eta_min=1e-6
+        )
+    else:
+        raise ValueError(f"stage must be 1 or 2, got {stage}")
+
+    return optimizer, scheduler

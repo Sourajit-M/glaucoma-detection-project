@@ -1,0 +1,3 @@
+Architecture,Parameters (M),AUC,Sensitivity,Specificity,F1,Accuracy
+ResNet18,11.7,0.9445,0.932,0.8164,0.8735,0.8714
+EfficientNet-B0,4.0,0.9292,0.904,0.8018,0.852,0.8505
