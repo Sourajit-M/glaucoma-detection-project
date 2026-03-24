@@ -202,4 +202,10 @@ glaucoma-detection-project/
 │   └── logs/                  # TensorBoard event files
 ├── pyproject.toml             # uv dependency specification
 └── .env.example               # Environment variable template
+├── datasets/
+│   ├── glaucoma        
+│   │   ├── ACRIMA          
+│   │   ├── RIM-ONE DL            
+│   │   ├── EyePACS-AIROGS          
+│   │   └── RIM-ONE_DL         
 ```
