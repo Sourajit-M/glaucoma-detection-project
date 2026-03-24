@@ -22,6 +22,8 @@ datasets/
 *.jpeg
 *.png
 *.bmp
+# Allow output figures (plots, heatmaps) to be committed
+!outputs/figures/*.png
 .env
 
 .ipynb_checkpoints/
