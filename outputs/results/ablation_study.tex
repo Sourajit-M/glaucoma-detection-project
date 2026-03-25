@@ -1,0 +1,14 @@
+\begin{table}
+\caption{Ablation study: contribution of each predictor to the ensemble. CNN+CDR achieves the best AUC, confirming that U-Net-derived structural features complement deep visual features.}
+\label{tab:ablation}
+\begin{tabular}{lccc}
+\toprule
+Variant & AUC & Sensitivity & Specificity \\
+\midrule
+CNN only & 0.944500 & 0.930000 & 0.823600 \\
+CNN + SVM & 0.928200 & 0.926000 & 0.803600 \\
+CNN + CDR ← proposed & 0.946800 & 0.930000 & 0.825500 \\
+CNN + SVM + CDR & 0.929000 & 0.926000 & 0.803600 \\
+\bottomrule
+\end{tabular}
+\end{table}

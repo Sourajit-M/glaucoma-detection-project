@@ -1,0 +1,5 @@
+Variant,AUC,Sensitivity,Specificity
+CNN only,0.9445,0.93,0.8236
+CNN + SVM,0.9282,0.926,0.8036
+CNN + CDR ← proposed,0.9468,0.93,0.8255
+CNN + SVM + CDR,0.929,0.926,0.8036
