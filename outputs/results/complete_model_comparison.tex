@@ -1,0 +1,16 @@
+\begin{table}
+\caption{Comprehensive comparison of all models on the held-out test set. Best values in each column are highlighted. ★ denotes the proposed hybrid ensemble.}
+\label{tab:full_comparison}
+\begin{tabular}{lccccc}
+\toprule
+Model & AUC & Sensitivity & Specificity & F1 & Accuracy \\
+\midrule
+LogisticRegression & 0.712600 & 0.670000 & 0.649100 & 0.651800 & 0.659000 \\
+SVM\_RBF & 0.788800 & 0.756000 & 0.681800 & 0.717900 & 0.717100 \\
+RandomForest & 0.767400 & 0.714000 & 0.689100 & 0.694600 & 0.701000 \\
+EfficientNet-B0 & 0.929198 & 0.904000 & 0.801818 & 0.852026 & 0.850476 \\
+CNN ResNet18 & 0.944540 & 0.932000 & 0.816364 & 0.873477 & 0.871429 \\
+Hybrid Ensemble (CNN+SVM+CDR) ★ & 0.928960 & 0.926000 & 0.803636 & 0.864613 & 0.861905 \\
+\bottomrule
+\end{tabular}
+\end{table}
