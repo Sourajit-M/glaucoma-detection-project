@@ -2,10 +2,11 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.3%2B-EE4C2C.svg)](https://pytorch.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg)](https://fastapi.tiangolo.com/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-F7931E.svg)](https://scikit-learn.org/)
 [![License](https://img.shields.io/badge/License-Academic-lightgrey.svg)]()
 
-> **Final Year B.E. Project** — An end-to-end glaucoma screening system combining classical Machine Learning, Deep Learning classification, U-Net segmentation, Grad-CAM explainability, and rigorous statistical evaluation.
+> **Final Year B.E. Project** — An end-to-end glaucoma screening system combining classical Machine Learning, Deep Learning classification, U-Net segmentation, Grad-CAM explainability, rigorous statistical evaluation, and a production-ready REST API backend.
 
 ---
 
@@ -13,7 +14,7 @@
 
 Glaucoma is the leading cause of irreversible blindness worldwide, typically diagnosed by clinically assessing deformations in the optic disc and optic cup as quantified by the Cup-to-Disc Ratio (CDR). Early, automated detection is critical for scalable screening in resource-limited settings.
 
-This project provides a **fully reproducible research pipeline** spanning data exploration, classical and deep feature extraction, CNN classification, deep segmentation, explainability heatmaps, and statistically sound evaluation — all designed to be compared in a publication-quality format.
+This project provides a **fully reproducible research pipeline** spanning data exploration, classical and deep feature extraction, CNN classification, deep segmentation, explainability heatmaps, statistically sound evaluation — and a deployable **FastAPI backend** serving real-time inference via ONNX-exported models.
 
 ### Supported Datasets
 
@@ -104,6 +105,60 @@ Applied **Gradient-weighted Class Activation Mapping** to the trained ResNet-18 
 
 ---
 
+### Phase 7 — Production REST API (FastAPI + ONNX) ✨ New
+
+A complete **FastAPI backend** (`webapp/backend/`) serving real-time glaucoma screening through a single REST endpoint. The pipeline is:
+
+```
+Upload fundus image → CNN (ONNX) inference → Grad-CAM overlay
+                   → U-Net disc/cup segmentation → CDR computation → JSON response
+```
+
+**API Endpoints:**
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | Model load status & readiness check |
+| `POST` | `/predict` | Full inference: classification + Grad-CAM + CDR |
+| `GET` | `/results/metrics` | Pre-computed evaluation metrics for all models |
+
+**`POST /predict` response includes:**
+- `prediction` — `"glaucoma"` or `"normal"`
+- `probability` — model confidence score (0–1)
+- `confidence` — `"high"` / `"medium"` / `"low"` tier
+- `cdr` — Cup-to-Disc Ratio from U-Net segmentation
+- `cdr_risk` — `"elevated"` / `"borderline"` / `"normal"`
+- `processing_time_ms` — end-to-end latency in milliseconds
+- `images` — base64-encoded: original, Grad-CAM overlay, disc mask, cup mask, segmentation overlay
+- `clinical_note` — mandatory disclaimer for non-clinical use
+
+**Technical stack:**
+- **FastAPI** with async lifespan model loading
+- **ONNX Runtime** for framework-agnostic, fast CPU/GPU inference
+- **Pydantic v2** schemas for strict request/response validation
+- **CORS** middleware configured for frontend integration
+- **Docker** support via `Dockerfile`
+
+**Input validation guards:**
+- File extension whitelist (`.png`, `.jpg`, `.jpeg`, `.bmp`)
+- 10 MB file size limit
+- Minimum image resolution check (100×100 px)
+- Corrupted / non-decodable image detection
+
+**Test suite** (`pytest`) — all passing ✅:
+
+| Test | Description |
+|---|---|
+| `test_predict_valid_image` | 200 response on valid PNG |
+| `test_predict_response_schema` | All fields present with correct types |
+| `test_predict_invalid_extension` | 400 on `.pdf` upload |
+| `test_predict_too_large` | 400 on > 10 MB file |
+| `test_predict_corrupted_image` | 400 on non-decodable bytes |
+| `test_predict_tiny_image` | 400 on image < 100×100 |
+| `test_metrics_endpoint` | `/results/metrics` returns all 6 models + ablation + segmentation |
+
+---
+
 ### Project Notebooks
 
 | Notebook | Content |
@@ -118,8 +173,6 @@ Applied **Gradient-weighted Class Activation Mapping** to the trained ResNet-18 
 ---
 
 ## 🔮 Proposed Enhancements (Future Work)
-
-The following enhancements are proposed to extend the system into a more complete, publication-ready and clinically deployable product:
 
 ### 🧠 Model Architecture Upgrades
 - **Vision Transformers (ViT / Swin-T):** Replace ResNet-18 with self-attention based models that capture long-range dependencies across the optic disc boundary — expected to particularly improve **specificity**.
@@ -140,38 +193,69 @@ The following enhancements are proposed to extend the system into a more complet
 - **Integrated Gradients / LIME:** Model-agnostic post-hoc explainers for the CNN, complementing Grad-CAM.
 - **Patient-level Report Generation:** Auto-generate a structured PDF explainability report per patient combining the fundus image, Grad-CAM overlay, predicted CDR, confidence score, and recommendation.
 
-### 🚀 Deployment & MLOps
-- **FastAPI + Streamlit / Gradio Web App:** A drag-and-drop web interface for clinicians — upload a fundus image, instantly receive classification, CDR, Grad-CAM overlay, and confidence score.
-- **ONNX Export:** Convert the trained PyTorch model to ONNX format for framework-agnostic, cross-platform inference (edge devices, IoT cameras).
-- **MLflow / Weights & Biases:** Migrate from CSV logging to full experiment tracking with parameter logging, metric visualisation and model registry.
-- **Docker Containerisation:** Package the inference API + model into a reproducible Docker image for clinic or cloud deployment.
+### 🖥️ Frontend & Full-Stack Completion
+- **React / Next.js Frontend:** Complete the `webapp/frontend/` with a clinical-grade drag-and-drop UI — upload a fundus image and receive an interactive dashboard showing the Grad-CAM overlay, segmentation masks, CDR gauge, and confidence breakdown.
+- **Real-time CDR Trend Chart:** Visualise longitudinal CDR measurements across multiple sessions per patient.
 
 ### 🩺 Clinical Integration
 - **Longitudinal Tracking:** Store and compare CDR measurements across multiple patient visits to identify progressive structural deterioration — significant clinically even if a single-visit screen is negative.
 - **Uncertainty Quantification:** Monte Carlo Dropout or Deep Ensembles to produce calibrated prediction confidence — flagging images where the model is uncertain for expert review rather than making binary decisions.
 
+### 🚀 MLOps
+- **MLflow / Weights & Biases:** Migrate from CSV logging to full experiment tracking with parameter logging, metric visualisation and model registry.
+- **CI/CD Pipeline:** GitHub Actions workflow to auto-run the pytest suite on every push and validate ONNX model loading.
+
 ---
 
 ## 🛠 Setup & Installation
 
-The project uses `uv` for fast, reproducible dependency management.
+### Research Pipeline (model training / notebooks)
 
 ```bash
 # 1. Install uv
 pip install uv
 
-# 2. Create virtual environment
-uv venv
+# 2. Create virtual environment & install dependencies (CUDA PyTorch included)
+uv venv && uv sync
 
-# 3. Install all dependencies (CUDA-enabled PyTorch included)
-uv sync
-
-# 4. Configure paths
+# 3. Configure data path
 copy .env.example .env
 # Edit .env: set GLAUCOMA_DATA_DIR to your local datasets root folder
 ```
 
-> **CUDA Note:** `pyproject.toml` is pre-configured with PyTorch CUDA 12.4 (`cu124`). If your driver version differs, update the index URL accordingly. Run `nvidia-smi` to verify your CUDA version.
+> **CUDA Note:** `pyproject.toml` is pre-configured with PyTorch CUDA 12.4 (`cu124`). Run `nvidia-smi` to verify your driver version.
+
+### FastAPI Backend
+
+```bash
+cd webapp/backend
+
+# Install backend dependencies
+pip install -r requirements.txt
+
+# Copy and configure environment
+copy .env.example .env
+
+# Run the API server
+uvicorn app.main:app --reload --port 8000
+```
+
+API docs available at: `http://localhost:8000/docs`
+
+### Running Tests
+
+```bash
+cd webapp/backend
+uv run pytest tests/ -v
+```
+
+### Docker
+
+```bash
+cd webapp/backend
+docker build -t glaucoma-api .
+docker run -p 8000:8000 glaucoma-api
+```
 
 ---
 
@@ -179,33 +263,51 @@ copy .env.example .env
 
 ```
 glaucoma-detection-project/
-├── config.py                  # Central config — paths, hyperparameters, device
+├── config.py                        # Central config — paths, hyperparameters, device
 ├── main.py
 ├── data/
-│   └── dataset_loader.py      # Unified loader for all 4 datasets
+│   └── dataset_loader.py            # Unified loader for all 4 datasets
 ├── features/
-│   └── feature_extractor.py   # Handcrafted feature extraction (LBP, CDR, colour)
+│   └── feature_extractor.py         # Handcrafted features (LBP, CDR, colour)
 ├── models/
-│   ├── classical_ml.py        # SVM, RF, LR training & serialisation
-│   ├── cnn_model.py           # GlaucomaResNet definition & optimizer builder
-│   ├── trainer.py             # Two-stage CNN Trainer with AUC-based early stopping
-│   ├── unet.py                # U-Net architecture for optic disc/cup segmentation
-│   └── seg_trainer.py         # Segmentation training loop (Dice loss)
+│   ├── classical_ml.py              # SVM, RF, LR training & serialisation
+│   ├── cnn_model.py                 # GlaucomaResNet definition & optimizer builder
+│   ├── trainer.py                   # Two-stage CNN Trainer (AUC early stopping)
+│   ├── unet.py                      # U-Net architecture for disc/cup segmentation
+│   └── seg_trainer.py               # Segmentation training loop (Dice loss)
 ├── explainability/
-│   └── gradcam.py             # Grad-CAM heatmap generation & focus scoring
+│   └── gradcam.py                   # Grad-CAM heatmap generation & focus scoring
 ├── evaluation/
-│   └── final_eval.py          # Bootstrap CI, DeLong's test, McNemar's test
-├── notebooks/                 # Step-by-step experimental notebooks (01–06)
+│   └── final_eval.py                # Bootstrap CI, DeLong's test, McNemar's test
+├── notebooks/                       # Step-by-step experimental notebooks (01–06)
 ├── outputs/
-│   ├── figures/               # All plots, heatmaps, segmentation overlays
-│   ├── results/               # Metric CSVs, ROC data, feature cache
-│   └── logs/                  # TensorBoard event files
-├── pyproject.toml             # uv dependency specification
-└── .env.example               # Environment variable template
+│   ├── figures/                     # Plots, heatmaps, segmentation overlays
+│   ├── results/                     # Metric CSVs, ROC data, feature cache
+│   └── logs/                        # TensorBoard event files
+├── webapp/
+│   ├── backend/                     # FastAPI inference server
+│   │   ├── app/
+│   │   │   ├── main.py              # FastAPI app + lifespan model loading
+│   │   │   ├── core/
+│   │   │   │   ├── config.py        # Pydantic settings
+│   │   │   │   └── model_loader.py  # ONNX model registry
+│   │   │   ├── routers/
+│   │   │   │   ├── health.py        # GET /health
+│   │   │   │   ├── predict.py       # POST /predict
+│   │   │   │   └── results.py       # GET /results/metrics
+│   │   │   ├── schemas/             # Pydantic request/response models
+│   │   │   ├── services/            # CNN inference, Grad-CAM, segmentation
+│   │   │   └── utils/               # Image I/O, validation, encoding
+│   │   ├── tests/                   # pytest suite (7 tests, all passing)
+│   │   ├── Dockerfile
+│   │   └── requirements.txt
+│   └── frontend/                    # (in progress)
 ├── datasets/
-│   ├── glaucoma        
-│   │   ├── ACRIMA          
-│   │   ├── RIM-ONE DL            
-│   │   ├── EyePACS-AIROGS          
-│   │   └── RIM-ONE_DL         
+│   └── glaucoma/
+│       ├── ACRIMA/
+│       ├── DRISHTI-GS1/
+│       ├── RIM-ONE_DL/
+│       └── EyePACS-AIROGS/
+├── pyproject.toml                   # uv dependency specification
+└── .env.example                     # Environment variable template
 ```
