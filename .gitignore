@@ -1,37 +1,115 @@
-# Python-generated files
+# ─────────────────────────────────────────────────────────────────────
+# Python Ecosystem
+# ─────────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
-*.pyo
+*$py.class
+*.so
 .Python
-*.egg-info/
-dist/
+env/
+venv/
+.venv/
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
 .eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Virtual environments
-.venv
+# ─────────────────────────────────────────────────────────────────────
+# Machine Learning & Data
+# ─────────────────────────────────────────────────────────────────────
+# Datasets and raw data
+data/
+datasets/
+raw_data/
+
+# Model weights and artifacts
+*.pth
+*.pt
+*.onnx
+*.pkl
+*.joblib
+*.pb
+*.h5
+*.weights
+models/
+outputs/models/
+webapp/backend/models/
+
+# Keep plot/chart results but ignore heavy predictions
+outputs/
+!outputs/figures/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# ─────────────────────────────────────────────────────────────────────
+# Web Development (Frontend & Backend)
+# ─────────────────────────────────────────────────────────────────────
+# Node modules and build artifacts
+node_modules/
+webapp/frontend/node_modules/
+webapp/frontend/dist/
+webapp/frontend/build/
+.next/
+out/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Vite / Build tool caches
+.vite/
+.turbo/
+
+# ─────────────────────────────────────────────────────────────────────
+# System & IDEs
+# ─────────────────────────────────────────────────────────────────────
+# Editor-specific
 .vscode/
 .idea/
 *.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# OS-generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Data
-datasets/
-*.jpg
-*.jpeg
-*.png
-*.bmp
-# Allow output figures (plots, heatmaps) to be committed
-!outputs/figures/*.png
-.env
-
-.ipynb_checkpoints/
-*.ipynb_checkpoints
-
-# Large model files
-*.pth
-*.pt
-#outputs
-outputs/models
+# ─────────────────────────────────────────────────────────────────────
+# Testing & Tools
+# ─────────────────────────────────────────────────────────────────────
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.ruff_cache/
+.mypy_cache/
 
