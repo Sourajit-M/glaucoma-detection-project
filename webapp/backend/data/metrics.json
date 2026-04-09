@@ -1,0 +1,25 @@
+{
+  "dataset_info": {
+    "total_images": 4730,
+    "test_set_size": 1050,
+    "datasets": ["ACRIMA", "RIM-ONE DL", "EyePACS-AIROGS"]
+  },
+  "models": [
+    {"name": "Logistic Regression", "type": "classical_ml",  "auc": 0.713, "sensitivity": 0.670, "specificity": 0.649, "f1": 0.652},
+    {"name": "Random Forest",       "type": "classical_ml",  "auc": 0.767, "sensitivity": 0.714, "specificity": 0.689, "f1": 0.695},
+    {"name": "SVM-RBF",             "type": "classical_ml",  "auc": 0.789, "sensitivity": 0.766, "specificity": 0.682, "f1": 0.718},
+    {"name": "EfficientNet-B0",     "type": "deep_learning", "auc": 0.929, "sensitivity": 0.904, "specificity": 0.785, "f1": 0.854},
+    {"name": "CNN ResNet18",        "type": "deep_learning", "auc": 0.945, "sensitivity": 0.932, "specificity": 0.816, "f1": 0.874},
+    {"name": "CNN + CDR",           "type": "hybrid",        "auc": 0.947, "sensitivity": 0.930, "specificity": 0.802, "f1": 0.865}
+  ],
+  "ablation": [
+    {"variant": "CNN only",        "auc": 0.9445},
+    {"variant": "CNN + SVM",       "auc": 0.9282},
+    {"variant": "CNN + SVM + CDR", "auc": 0.9290},
+    {"variant": "CNN + CDR",       "auc": 0.9468}
+  ],
+  "segmentation": [
+    {"structure": "Optic disc", "dice": 0.9677, "iou": 0.9378},
+    {"structure": "Optic cup",  "dice": 0.8794, "iou": 0.7931}
+  ]
+}
