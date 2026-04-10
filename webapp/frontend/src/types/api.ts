@@ -6,7 +6,7 @@ export interface ImageSet{
     segmentation_overlay: string
 }
 
-export interface PredictResponse{
+export interface PredictionResponse{
     prediction: 'glaucoma' | 'healthy'
     probability: number
     confidence: 'high' | 'medium' | 'low'
