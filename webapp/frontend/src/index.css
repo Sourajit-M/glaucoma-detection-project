@@ -1,1 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
+
+:root {
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-sans: 'Inter', sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: linear-gradient(135deg, #f0f4f8 0%, #ffffff 100%);
+  background-attachment: fixed;
+  color: #1a202c;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* Glassmorphism Classes */
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-xl border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl;
+  }
+  
+  .glass-card {
+    @apply bg-white/60 backdrop-blur-lg border border-white/60 shadow-[0_4px_20px_rgb(0,0,0,0.02)] rounded-xl transition-all duration-300;
+  }
+  
+  .glass-card:hover {
+    @apply shadow-[0_8px_25px_rgb(0,0,0,0.06)] transform -translate-y-0.5 bg-white/80 border-white/90;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500;
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulseBorder {
+  0% { border-color: rgba(59, 130, 246, 0.2); }
+  50% { border-color: rgba(59, 130, 246, 0.6); }
+  100% { border-color: rgba(59, 130, 246, 0.2); }
+}
+
+.animate-pulse-border {
+  animation: pulseBorder 2s infinite;
+}
