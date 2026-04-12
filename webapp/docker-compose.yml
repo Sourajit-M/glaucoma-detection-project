@@ -1,11 +1,12 @@
 services:
   backend:
     build: ./backend
+    image: glaucoma-backend
     ports:
       - "8000:8000"
     env_file: ./backend/.env
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; r = urllib.request.urlopen('http://localhost:8000/health'); raise SystemExit(0 if 200 <= r.status < 300 else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -13,10 +14,9 @@ services:
 
   frontend:
     build: ./frontend
+    image: glaucoma-frontend
     ports:
       - "5173:80"
-    environment:
-      - VITE_API_URL=http://localhost:8000
     depends_on:
       backend:
         condition: service_healthy
