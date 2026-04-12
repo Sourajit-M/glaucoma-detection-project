@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────
-# Python Ecosystem
+# Python ecosystem
 # ─────────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
@@ -11,7 +11,6 @@ venv/
 .venv/
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -27,14 +26,14 @@ wheels/
 MANIFEST
 
 # ─────────────────────────────────────────────────────────────────────
-# Machine Learning & Data
+# Machine learning & data
 # ─────────────────────────────────────────────────────────────────────
-# Datasets and raw data
-data/
+
+# Datasets — not redistributable, too large for git
 datasets/
 raw_data/
 
-# Model weights and artifacts
+# Model weight files — regenerate with export_onnx.py
 *.pth
 *.pt
 *.onnx
@@ -43,45 +42,55 @@ raw_data/
 *.pb
 *.h5
 *.weights
-models/
-outputs/models/
-webapp/backend/models/
 
-# Keep plot/chart results but ignore heavy predictions
-outputs/
+# Outputs — keep figures for README, ignore everything else
+outputs/results/
+outputs/logs/
+outputs/models/
+
+# Keep figures tracked (used in README and paper)
 !outputs/figures/
 
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints
+# Jupyter
+.ipynb_checkpoints/
 */.ipynb_checkpoints/*
 
 # ─────────────────────────────────────────────────────────────────────
-# Web Development (Frontend & Backend)
+# Web — frontend
 # ─────────────────────────────────────────────────────────────────────
-# Node modules and build artifacts
 node_modules/
 webapp/frontend/node_modules/
 webapp/frontend/dist/
 webapp/frontend/build/
 .next/
 out/
+.vite/
+.turbo/
 
-# Environment files
+# ─────────────────────────────────────────────────────────────────────
+# Web — backend models folder (onnx files copied here for serving)
+# ─────────────────────────────────────────────────────────────────────
+webapp/backend/models/
+
+# ─────────────────────────────────────────────────────────────────────
+# Environment files — never commit secrets
+# ─────────────────────────────────────────────────────────────────────
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-*.env
+webapp/backend/.env
+webapp/frontend/.env
+webapp/frontend/.env.production
 
-# Vite / Build tool caches
-.vite/
-.turbo/
+# Keep example templates tracked so others can configure
+!.env.example
+!webapp/backend/.env.example
 
 # ─────────────────────────────────────────────────────────────────────
-# System & IDEs
+# IDEs and editors
 # ─────────────────────────────────────────────────────────────────────
-# Editor-specific
 .vscode/
 .idea/
 *.swp
@@ -89,7 +98,9 @@ out/
 *.sublime-project
 *.sublime-workspace
 
+# ─────────────────────────────────────────────────────────────────────
 # OS-generated files
+# ─────────────────────────────────────────────────────────────────────
 .DS_Store
 .DS_Store?
 ._*
@@ -99,7 +110,7 @@ ehthumbs.db
 Thumbs.db
 
 # ─────────────────────────────────────────────────────────────────────
-# Testing & Tools
+# Testing and tools
 # ─────────────────────────────────────────────────────────────────────
 .pytest_cache/
 .tox/
@@ -113,3 +124,5 @@ coverage.xml
 .ruff_cache/
 .mypy_cache/
 
+# uv
+uv.lock
