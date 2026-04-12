@@ -46,13 +46,13 @@ export default function About() {
             unified inference pipeline.
           </p>
           <div className="flex gap-4 flex-wrap">
-            <a href="https://github.com" target="_blank" rel="noreferrer"
+            <a href="https://github.com/Sourajit-M/glaucoma-detection-project" target="_blank" rel="noreferrer"
               style={{ fontFamily: 'var(--font-mono)' }}
               className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-xs font-bold
                 tracking-widest px-5 py-3 rounded-xl shadow-md hover:shadow-[0_8px_20px_rgba(59,130,246,0.3)] hover:-translate-y-0.5 transition-all duration-300">
               <SiGithub size={14} /> GITHUB REPOSITORY
             </a>
-            <a href="#"
+            <a href="https://drive.google.com/file/d/1fqqlqr1JEznhNYMumQ-9fFlXup48C2Lt/view" target='_blank'
               style={{ fontFamily: 'var(--font-mono)' }}
               className="flex items-center gap-2 bg-white/80 border border-gray-200
                 text-xs font-bold tracking-widest px-5 py-3 rounded-xl
@@ -112,7 +112,7 @@ export default function About() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/40">
-              {datasets.map((d, i) => (
+              {datasets.map((d) => (
                 <tr key={d.name}
                   className="hover:bg-white/60 transition-colors">
                   <td style={{ fontFamily: 'var(--font-mono)' }}

@@ -27,7 +27,7 @@ export default function Navbar() {
           </Link>
         ))}
       </div>
-      <a href="https://github.com" target="_blank" rel="noreferrer"
+      <a href="https://github.com/Sourajit-M/glaucoma-detection-project" target="_blank" rel="noreferrer"
         className="flex items-center gap-2 text-xs font-bold tracking-widest
           bg-gradient-to-r from-gray-800 to-black text-white px-5 py-2.5 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
         style={{ fontFamily: 'var(--font-mono)' }}>

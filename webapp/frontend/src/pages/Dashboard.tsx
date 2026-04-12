@@ -162,7 +162,7 @@ export default function Dashboard() {
             Morphological segmentation on DRISHTI-GS1 (n=50).
           </p>
           <div className="grid grid-cols-2 gap-4 mb-4 flex-1">
-            {data.segmentation.map((s, idx) => (
+            {data.segmentation.map((s) => (
               <div key={`${s.structure}-metrics`} className="contents">
                 <div key={`${s.structure}-dice`}
                   className="bg-gradient-to-br from-white/80 to-white/40 p-5 rounded-2xl border border-white shadow-sm">
