@@ -2,8 +2,44 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 
-# Exact node name from the ONNX graph inspection
-LAYER4_NODE = "/backbone/layer4/layer4.1/relu_1/Relu_output_0"
+# Preferred node name — set during model export.
+# If the model doesn't expose this exact name we fall back to auto-discovery.
+_PREFERRED_LAYER4_NODE = "/backbone/layer4/layer4.1/relu_1/Relu_output_0"
+
+
+def _find_layer4_output_name(session: ort.InferenceSession) -> str:
+    """
+    Return the name of the last layer4 Relu output exposed by the session.
+
+    Priority:
+      1. Use _PREFERRED_LAYER4_NODE if it exists in the session outputs.
+      2. Otherwise scan session outputs for any name containing 'layer4'
+         and pick the last one (deepest in the block).
+
+    Raises ValueError if nothing suitable is found.
+    """
+    output_names = [o.name for o in session.get_outputs()]
+
+    # Fast path — preferred name is available
+    if _PREFERRED_LAYER4_NODE in output_names:
+        return _PREFERRED_LAYER4_NODE
+
+    # Fallback — find any layer4 output
+    layer4_outputs = [n for n in output_names if "layer4" in n]
+    if layer4_outputs:
+        chosen = layer4_outputs[-1]   # last = deepest in the block
+        print(
+            f"[gradcam] Warning: preferred node '{_PREFERRED_LAYER4_NODE}' "
+            f"not found. Using fallback: '{chosen}'",
+            flush=True,
+        )
+        return chosen
+
+    raise ValueError(
+        f"No layer4 intermediate output found in the ONNX model. "
+        f"Available outputs: {output_names}. "
+        "Re-export the CNN with the layer4 node as an explicit output."
+    )
 
 
 def generate_heatmap(
@@ -21,11 +57,13 @@ def generate_heatmap(
     Returns:
         heatmap: np.ndarray (224, 224) float32 in [0, 1]
     """
+    layer4_node = _find_layer4_output_name(session)
+
     # ── Step 1: run inference requesting the intermediate node ────
     # By adding layer4 to the output list, ONNX Runtime returns
     # both the final logits AND the layer4 feature maps
     outputs = session.run(
-        [LAYER4_NODE, "logits"],
+        [layer4_node, "logits"],
         {"image": image_array},
     )
 
