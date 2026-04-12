@@ -1,313 +1,341 @@
-# Glaucoma Detection & Structural Analysis System
+# GlaucomaDetect
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.3%2B-EE4C2C.svg)](https://pytorch.org/)
+[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.3-EE4C2C.svg)](https://pytorch.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg)](https://fastapi.tiangolo.com/)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-F7931E.svg)](https://scikit-learn.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB.svg)](https://react.dev/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED.svg)](https://www.docker.com/)
+[![Tests](https://img.shields.io/badge/Tests-9%20passing-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/License-Academic-lightgrey.svg)]()
 
-> **Final Year B.E. Project** — An end-to-end glaucoma screening system combining classical Machine Learning, Deep Learning classification, U-Net segmentation, Grad-CAM explainability, rigorous statistical evaluation, and a production-ready REST API backend.
+> An interpretable hybrid deep learning system for glaucoma detection from retinal
+> fundus images — combining ResNet18 transfer learning, U-Net structural segmentation,
+> Grad-CAM explainability, and a production-ready REST API with a clinical dashboard.
+
+**AUC 0.947 · Sensitivity 0.930 · Disc Dice 0.968 · Cup Dice 0.879**
 
 ---
 
-## 🚀 Project Overview
+## Overview
 
-Glaucoma is the leading cause of irreversible blindness worldwide, typically diagnosed by clinically assessing deformations in the optic disc and optic cup as quantified by the Cup-to-Disc Ratio (CDR). Early, automated detection is critical for scalable screening in resource-limited settings.
+Glaucoma is the second leading cause of irreversible blindness worldwide. Detection
+relies on assessing the optic disc and cup in retinal fundus photographs — a task that
+is specialist-dependent, time-consuming, and inaccessible at scale.
 
-This project provides a **fully reproducible research pipeline** spanning data exploration, classical and deep feature extraction, CNN classification, deep segmentation, explainability heatmaps, statistically sound evaluation — and a deployable **FastAPI backend** serving real-time inference via ONNX-exported models.
+This project delivers a **fully reproducible end-to-end pipeline** from raw fundus
+images to a deployed REST API, covering:
 
-### Supported Datasets
-
-| Dataset | Size | Task |
-|---|---|---|
-| **ACRIMA** | 705 fundus images | Classification |
-| **DRISHTI-GS1** | 101 images + GT masks | Segmentation / CDR |
-| **RIM-ONE DL** | 313 images | Classification |
-| **EyePACS-AIROGS-light-v2** | Large-scale | Classification |
-
----
-
-## ✅ Current Achievements
-
-### Phase 1 — Data Exploration & Visualisation
-- Loaded and validated all four datasets through a unified data loader.
-- Used **proxy segmentation** (color-channel thresholding) to generate initial Cup-to-Disc Ratio estimates and compared them against DRISHTI-GS1 ground truth annotations.
-- Generated rich exploratory visualisations: class distribution, color feature correlation maps, CDR proxy vs. GT scatter plots, and annotated fundus sample grids.
+- Classical ML baselines (LR, SVM-RBF, Random Forest) with 45-dimensional handcrafted features
+- Deep learning classification (ResNet18, EfficientNet-B0) with two-stage transfer learning
+- U-Net segmentation for optic disc and cup — enabling accurate CDR computation
+- Grad-CAM explainability with quantitative disc focus scoring
+- Ablation study identifying CNN + CDR as the optimal fusion strategy
+- Statistical significance testing (DeLong's AUC test, McNemar's test, bootstrap CI)
+- Production FastAPI backend serving all models as ONNX with sub-5s CPU inference
+- React clinical dashboard with monochromatic design, Grad-CAM viewer, and metrics dashboard
 
 ---
 
-### Phase 2 — Feature Engineering & Classical ML Baseline
+## Results
 
-Extracted clinically motivated handcrafted features:
-- **Texture:** Local Binary Patterns (LBP)
-- **Structure:** CDR proxy, morphological descriptors
-- **Colour / Intensity:** Channel statistics, PCA projections
+### Classification — held-out test set (n = 1,050)
 
-Evaluated on ACRIMA + RIM-ONE DL combined split (70:15:15):
+| Model | AUC | Sensitivity | Specificity | F1 |
+|---|---|---|---|---|
+| Logistic Regression | 0.713 | 0.670 | 0.649 | 0.652 |
+| Random Forest | 0.767 | 0.714 | 0.689 | 0.695 |
+| SVM-RBF | 0.789 | 0.766 | 0.682 | 0.718 |
+| EfficientNet-B0 | 0.929 | 0.904 | 0.785 | 0.854 |
+| CNN ResNet18 | 0.945 | 0.932 | 0.816 | 0.874 |
+| **CNN + CDR (proposed)** | **0.947** | **0.930** | **0.802** | **0.865** |
 
-| Model | AUC | Sensitivity | Specificity | F1 | Accuracy |
-|---|---|---|---|---|---|
-| Logistic Regression | 0.7126 | 0.670 | 0.649 | 0.652 | 0.659 |
-| **SVM (RBF)** | **0.7888** | **0.756** | **0.682** | **0.718** | **0.717** |
-| Random Forest | 0.7674 | 0.714 | 0.689 | 0.695 | 0.701 |
+CNN significantly outperforms SVM-RBF: Z = 10.11, p < 0.0001 (DeLong's test);
+χ² = 98.94, p < 0.0001 (McNemar's test).
 
-> Best classical baseline: **SVM (RBF)** with `AUC = 0.7888`.
+### Ablation study
 
----
-
-### Phase 3 — Deep Learning Classification (CNN)
-
-Trained a **ResNet-18** transfer-learning pipeline with:
-- Two-stage fine-tuning (frozen backbone → full unfreeze)
-- Mixed-precision training (`torch.amp`) for ~30% speedup on RTX GPUs
-- Early stopping on validation AUC
-- TensorBoard-logged loss, AUC, and learning rate curves
-
-| Model | AUC | Sensitivity | Specificity | F1 | Accuracy |
-|---|---|---|---|---|---|
-| **CNN (ResNet-18)** | **0.9445** | **0.932** | **0.816** | **0.874** | **0.871** |
-
-> Deep learning outperforms the best classical baseline by **+15.6% AUC**.
-
----
-
-### Phase 4 — Deep Segmentation (U-Net)
-
-Replaced proxy CDR heuristics with a **dedicated U-Net** trained on DRISHTI-GS1 ground truth masks for pixel-accurate optic disc and cup delineation.
-
-| Target | Dice | IoU |
-|---|---|---|
-| **Optic Disc** | **0.9677** | **0.9378** |
-| **Optic Cup** | **0.8794** | **0.7931** |
-
-- CDR values derived from U-Net segmentations now correlate closely with expert annotations.
-- Segmentation training curves and sample result overlays saved to `outputs/figures/`.
-
----
-
-### Phase 5 — Explainability & Trust (Grad-CAM)
-
-Applied **Gradient-weighted Class Activation Mapping** to the trained ResNet-18 to validate that predictions are anatomically grounded:
-- Heatmaps confirm model attention is localized to the **optic nerve head** region — not background or image artifacts.
-- Computed per-image **focus scores** to quantitatively verify saliency concentration (`outputs/results/gradcam_focus_scores.csv`).
-- Publication figure generated: `outputs/figures/gradcam_publication_figure.png`.
-
----
-
-### Phase 6 — Rigorous Statistical Evaluation
-
-`evaluation/final_eval.py` implements paper-grade statistical analysis:
-- **Bootstrap 95% Confidence Intervals** (2000 resamples) for all metrics
-- **DeLong's Test** for pairwise AUC comparison between models
-- **McNemar's Test** for classifier agreement analysis
-- **Cross-dataset performance breakdown** (per-cohort breakdown table)
-- **Publication-ready results table** with CI-annotated cells
-
----
-
-### Phase 7 — Production REST API (FastAPI + ONNX) ✨ New
-
-A complete **FastAPI backend** (`webapp/backend/`) serving real-time glaucoma screening through a single REST endpoint. The pipeline is:
-
-```
-Upload fundus image → CNN (ONNX) inference → Grad-CAM overlay
-                   → U-Net disc/cup segmentation → CDR computation → JSON response
-```
-
-**API Endpoints:**
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/health` | Model load status & readiness check |
-| `POST` | `/predict` | Full inference: classification + Grad-CAM + CDR |
-| `GET` | `/results/metrics` | Pre-computed evaluation metrics for all models |
-
-**`POST /predict` response includes:**
-- `prediction` — `"glaucoma"` or `"normal"`
-- `probability` — model confidence score (0–1)
-- `confidence` — `"high"` / `"medium"` / `"low"` tier
-- `cdr` — Cup-to-Disc Ratio from U-Net segmentation
-- `cdr_risk` — `"elevated"` / `"borderline"` / `"normal"`
-- `processing_time_ms` — end-to-end latency in milliseconds
-- `images` — base64-encoded: original, Grad-CAM overlay, disc mask, cup mask, segmentation overlay
-- `clinical_note` — mandatory disclaimer for non-clinical use
-
-**Technical stack:**
-- **FastAPI** with async lifespan model loading
-- **ONNX Runtime** for framework-agnostic, fast CPU/GPU inference
-- **Pydantic v2** schemas for strict request/response validation
-- **CORS** middleware configured for frontend integration
-- **Docker** support via `Dockerfile`
-
-**Input validation guards:**
-- File extension whitelist (`.png`, `.jpg`, `.jpeg`, `.bmp`)
-- 10 MB file size limit
-- Minimum image resolution check (100×100 px)
-- Corrupted / non-decodable image detection
-
-**Test suite** (`pytest`) — all passing ✅:
-
-| Test | Description |
+| Fusion variant | AUC |
 |---|---|
-| `test_predict_valid_image` | 200 response on valid PNG |
-| `test_predict_response_schema` | All fields present with correct types |
-| `test_predict_invalid_extension` | 400 on `.pdf` upload |
-| `test_predict_too_large` | 400 on > 10 MB file |
-| `test_predict_corrupted_image` | 400 on non-decodable bytes |
-| `test_predict_tiny_image` | 400 on image < 100×100 |
-| `test_metrics_endpoint` | `/results/metrics` returns all 6 models + ablation + segmentation |
+| CNN only | 0.9445 |
+| CNN + SVM | 0.9282 |
+| CNN + SVM + CDR | 0.9290 |
+| **CNN + CDR** | **0.9468** |
+
+CDR from U-Net adds complementary structural information (+0.002 AUC).
+SVM features are subsumed by CNN learned representations and degrade performance.
+
+### Segmentation — DRISHTI-GS1 (n = 50)
+
+| Structure | Dice | IoU |
+|---|---|---|
+| Optic disc | 0.9677 | 0.9378 |
+| Optic cup | 0.8794 | 0.7931 |
 
 ---
 
-### Project Notebooks
+## Datasets
 
-| Notebook | Content |
-|---|---|
-| `01_data_exploration.ipynb` | Dataset loading, CDR proxy, visualisations |
-| `02_feature_engineering.ipynb` | LBP, PCA, colour features |
-| `03_classical_ml.ipynb` | SVM, RF, LR benchmarks |
-| `04_cnn_training.ipynb` | ResNet-18 two-stage fine-tuning |
-| `05_explainability.ipynb` | Grad-CAM heatmaps & focus score analysis |
-| `06_segmentation.ipynb` | U-Net training, CDR from masks, Dice/IoU |
+| Dataset | Images | Task |
+|---|---|---|
+| [ACRIMA](https://figshare.com/s/c2d31f850af14c5b5232) | 705 | Classification |
+| [RIM-ONE DL](https://github.com/miag-ull/rim-one-dl) | 485 | Classification |
+| [EyePACS-AIROGS-light-v2](https://airogs.grand-challenge.org/) | 3,540 | Classification |
+| [DRISHTI-GS1](https://cvit.iiit.ac.in/projects/mip/drishti-gs/mip-dataset2/Home.php) | 50 | Segmentation |
 
 ---
 
-## 🔮 Proposed Enhancements (Future Work)
-
-### 🧠 Model Architecture Upgrades
-- **Vision Transformers (ViT / Swin-T):** Replace ResNet-18 with self-attention based models that capture long-range dependencies across the optic disc boundary — expected to particularly improve **specificity**.
-- **EfficientNet / ConvNeXt:** Lightweight yet high-performing CNN backbones for resource-constrained clinical hardware.
-- **Multi-task Learning Head:** Jointly optimise the classification and CDR regression objectives on a single shared encoder, reducing the two-stage pipeline into one unified model.
-- **Ensemble & Stacking:** Fuse probabilities from CNN and classical ML into a meta-classifier for robustness on edge cases.
-
-### 🌐 Cross-Dataset Generalisation
-- **Domain Adaptation:** Implement adversarial domain adaptation or histogram normalisation to mitigate camera-hardware bias introduced when training on one dataset (e.g., RIM-ONE DL) and testing on another (e.g., ACRIMA).
-- **Leave-One-Dataset-Out Evaluation:** Rigorous protocol to measure how well the model generalises across unseen acquisition environments — critical for real-world clinical deployment.
-
-### ⚖️ Class Imbalance & Hard Cases
-- **Focal Loss:** Down-weight easy negatives to focus gradients on difficult borderline positives.
-- **Hard-Negative Mining:** Explicitly identify and oversample images where the model is most confused, improving calibration in the critical high-sensitivity operating region.
-
-### 📊 Enhanced Explainability
-- **SHAP Values:** Feature attribution for the tabular classical ML models to rank which handcrafted features (CDR, LBP, colour) matter most clinically.
-- **Integrated Gradients / LIME:** Model-agnostic post-hoc explainers for the CNN, complementing Grad-CAM.
-- **Patient-level Report Generation:** Auto-generate a structured PDF explainability report per patient combining the fundus image, Grad-CAM overlay, predicted CDR, confidence score, and recommendation.
-
-### 🖥️ Frontend & Full-Stack Completion
-- **React / Next.js Frontend:** Complete the `webapp/frontend/` with a clinical-grade drag-and-drop UI — upload a fundus image and receive an interactive dashboard showing the Grad-CAM overlay, segmentation masks, CDR gauge, and confidence breakdown.
-- **Real-time CDR Trend Chart:** Visualise longitudinal CDR measurements across multiple sessions per patient.
-
-### 🩺 Clinical Integration
-- **Longitudinal Tracking:** Store and compare CDR measurements across multiple patient visits to identify progressive structural deterioration — significant clinically even if a single-visit screen is negative.
-- **Uncertainty Quantification:** Monte Carlo Dropout or Deep Ensembles to produce calibrated prediction confidence — flagging images where the model is uncertain for expert review rather than making binary decisions.
-
-### 🚀 MLOps
-- **MLflow / Weights & Biases:** Migrate from CSV logging to full experiment tracking with parameter logging, metric visualisation and model registry.
-- **CI/CD Pipeline:** GitHub Actions workflow to auto-run the pytest suite on every push and validate ONNX model loading.
-
----
-
-## 🛠 Setup & Installation
-
-### Research Pipeline (model training / notebooks)
-
-```bash
-# 1. Install uv
-pip install uv
-
-# 2. Create virtual environment & install dependencies (CUDA PyTorch included)
-uv venv && uv sync
-
-# 3. Configure data path
-copy .env.example .env
-# Edit .env: set GLAUCOMA_DATA_DIR to your local datasets root folder
-```
-
-> **CUDA Note:** `pyproject.toml` is pre-configured with PyTorch CUDA 12.4 (`cu124`). Run `nvidia-smi` to verify your driver version.
-
-### FastAPI Backend
-
-```bash
-cd webapp/backend
-
-# Install backend dependencies
-pip install -r requirements.txt
-
-# Copy and configure environment
-copy .env.example .env
-
-# Run the API server
-uvicorn app.main:app --reload --port 8000
-```
-
-API docs available at: `http://localhost:8000/docs`
-
-### Running Tests
-
-```bash
-cd webapp/backend
-uv run pytest tests/ -v
-```
-
-### Docker
-
-```bash
-cd webapp/backend
-docker build -t glaucoma-api .
-docker run -p 8000:8000 glaucoma-api
-```
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 glaucoma-detection-project/
-├── config.py                        # Central config — paths, hyperparameters, device
-├── main.py
+├── config.py                     ← Central config: paths, hyperparameters, device
+├── export_onnx.py                ← Export PyTorch models to ONNX for serving
+│
 ├── data/
-│   └── dataset_loader.py            # Unified loader for all 4 datasets
+│   └── dataset_loader.py         ← Unified loader for all 4 datasets
 ├── features/
-│   └── feature_extractor.py         # Handcrafted features (LBP, CDR, colour)
+│   └── feature_extractor.py      ← Handcrafted features: LBP, CDR proxy, colour
 ├── models/
-│   ├── classical_ml.py              # SVM, RF, LR training & serialisation
-│   ├── cnn_model.py                 # GlaucomaResNet definition & optimizer builder
-│   ├── trainer.py                   # Two-stage CNN Trainer (AUC early stopping)
-│   ├── unet.py                      # U-Net architecture for disc/cup segmentation
-│   └── seg_trainer.py               # Segmentation training loop (Dice loss)
+│   ├── classical_ml.py           ← SVM, RF, LR with GridSearchCV
+│   ├── cnn_model.py              ← GlaucomaResNet + GlaucomaEfficientNet
+│   ├── trainer.py                ← Two-stage CNN trainer (mixed precision, AUC early stopping)
+│   ├── unet.py                   ← U-Net with DiceBCE loss + CDR computation
+│   ├── seg_trainer.py            ← Segmentation training loop
+│   └── ensemble.py               ← HybridEnsemble: CNN + CDR late fusion
 ├── explainability/
-│   └── gradcam.py                   # Grad-CAM heatmap generation & focus scoring
+│   └── gradcam.py                ← Grad-CAM + focus score
 ├── evaluation/
-│   └── final_eval.py                # Bootstrap CI, DeLong's test, McNemar's test
-├── notebooks/                       # Step-by-step experimental notebooks (01–06)
+│   └── final_eval.py             ← Bootstrap CI, DeLong's test, McNemar's test
+│
+├── notebooks/
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_feature_engineering.ipynb
+│   ├── 03_classical_ml.ipynb
+│   ├── 04_cnn_training.ipynb
+│   ├── 05_explainability.ipynb
+│   ├── 05b_efficientnet.ipynb
+│   ├── 06_segmentation.ipynb
+│   ├── 07_final_evaluation.ipynb
+│   └── 08_ensemble.ipynb
+│
 ├── outputs/
-│   ├── figures/                     # Plots, heatmaps, segmentation overlays
-│   ├── results/                     # Metric CSVs, ROC data, feature cache
-│   └── logs/                        # TensorBoard event files
+│   ├── models/                   ← Saved .pth and .onnx model files
+│   ├── figures/                  ← All publication figures (300 DPI)
+│   └── results/                  ← Metric CSVs, ROC data, feature cache
+│
 ├── webapp/
-│   ├── backend/                     # FastAPI inference server
+│   ├── docker-compose.yml
+│   ├── backend/
 │   │   ├── app/
-│   │   │   ├── main.py              # FastAPI app + lifespan model loading
-│   │   │   ├── core/
-│   │   │   │   ├── config.py        # Pydantic settings
-│   │   │   │   └── model_loader.py  # ONNX model registry
-│   │   │   ├── routers/
-│   │   │   │   ├── health.py        # GET /health
-│   │   │   │   ├── predict.py       # POST /predict
-│   │   │   │   └── results.py       # GET /results/metrics
-│   │   │   ├── schemas/             # Pydantic request/response models
-│   │   │   ├── services/            # CNN inference, Grad-CAM, segmentation
-│   │   │   └── utils/               # Image I/O, validation, encoding
-│   │   ├── tests/                   # pytest suite (7 tests, all passing)
+│   │   │   ├── main.py           ← FastAPI app + lifespan startup
+│   │   │   ├── core/             ← Config, model registry
+│   │   │   ├── routers/          ← /health, /predict, /results/metrics
+│   │   │   ├── schemas/          ← Pydantic request/response models
+│   │   │   ├── services/         ← CNN inference, Grad-CAM, segmentation
+│   │   │   └── utils/            ← Image validation, preprocessing, encoding
+│   │   ├── data/metrics.json     ← Pre-computed research metrics
+│   │   ├── models/               ← .onnx model files (gitignored)
+│   │   ├── tests/                ← pytest suite (9 tests)
 │   │   ├── Dockerfile
 │   │   └── requirements.txt
-│   └── frontend/                    # (in progress)
-├── datasets/
-│   └── glaucoma/
-│       ├── ACRIMA/
-│       ├── DRISHTI-GS1/
-│       ├── RIM-ONE_DL/
-│       └── EyePACS-AIROGS/
-├── pyproject.toml                   # uv dependency specification
-└── .env.example                     # Environment variable template
+│   └── frontend/
+│       ├── src/
+│       │   ├── pages/            ← Predict, Dashboard, About
+│       │   ├── components/       ← Navbar, UploadZone, ResultCard, HeatmapViewer
+│       │   ├── hooks/            ← usePrediction (TanStack Query)
+│       │   ├── lib/              ← Axios API client
+│       │   └── types/            ← TypeScript interfaces
+│       ├── Dockerfile
+│       ├── nginx.conf
+│       └── vite.config.ts
+│
+├── pyproject.toml                ← uv dependency spec (CUDA PyTorch)
+└── .env.example
 ```
+
+---
+
+## Setup
+
+### Prerequisites
+
+- Python 3.11+, [uv](https://docs.astral.sh/uv/), Node.js 20+, pnpm
+- NVIDIA GPU with CUDA 12.4 recommended for training (inference runs on CPU)
+
+### Research pipeline
+
+```bash
+# Install dependencies via uv (includes CUDA PyTorch)
+uv venv && uv sync
+
+# Configure data paths
+copy .env.example .env
+# Set GLAUCOMA_DATA_DIR to your datasets root folder
+
+# Run notebooks in order
+uv run jupyter notebook
+```
+
+### Backend (development)
+
+```bash
+cd webapp/backend
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload --port 8000
+# Docs: http://localhost:8000/docs
+```
+
+### Frontend (development)
+
+```bash
+cd webapp/frontend
+pnpm install
+pnpm dev
+# App: http://localhost:5173
+```
+
+### Docker (full stack)
+
+```bash
+# First export models to ONNX and copy to webapp/backend/models/
+uv run python export_onnx.py
+
+cd webapp
+docker compose up --build
+# App:  http://localhost:5173
+# API:  http://localhost:8000/docs
+```
+
+### Tests
+
+```bash
+cd webapp/backend
+pytest tests/ -v
+# 9 passed in ~0.4s
+```
+
+---
+
+## API Reference
+
+### `POST /predict`
+
+Upload a retinal fundus image for full analysis.
+
+**Request:** `multipart/form-data` with field `file` (.jpg / .png / .bmp, max 10 MB)
+
+**Response:**
+```json
+{
+  "prediction":         "glaucoma",
+  "probability":        0.8734,
+  "confidence":         "high",
+  "cdr":                0.712,
+  "cdr_risk":           "elevated",
+  "processing_time_ms": 1240,
+  "images": {
+    "original":             "<base64_png>",
+    "heatmap_overlay":      "<base64_png>",
+    "disc_mask":            "<base64_png>",
+    "cup_mask":             "<base64_png>",
+    "segmentation_overlay": "<base64_png>"
+  },
+  "clinical_note": "This result is generated by a research model..."
+}
+```
+
+### `GET /health`
+Returns model load status. Used by Docker health check.
+
+### `GET /results/metrics`
+Returns pre-computed evaluation metrics for all models.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Training | Python 3.11, PyTorch 2.3, CUDA 12.4 |
+| Classical ML | scikit-learn, NumPy, OpenCV |
+| Segmentation | segmentation-models-pytorch |
+| Serving | FastAPI, ONNX Runtime, Uvicorn |
+| Validation | Pydantic v2 |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS |
+| Charts | Recharts |
+| HTTP | TanStack Query, Axios |
+| Container | Docker, nginx |
+| Package mgr | uv (Python), pnpm (Node) |
+
+---
+
+## Deployment
+
+### Railway (recommended)
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+railway login
+
+cd webapp
+railway up
+```
+
+Set environment variables in Railway dashboard:
+- Backend service: contents of `backend/.env`
+- Frontend service: `VITE_API_URL=https://your-backend.railway.app`
+
+### Render
+
+Create two services from `webapp/`:
+- **Backend** — Docker, root `./backend`, port 8000
+- **Frontend** — Docker, root `./frontend`, port 80
+
+Set `VITE_API_URL` in the frontend service environment to the backend URL.
+
+---
+
+## Limitations
+
+- U-Net trained on 50 DRISHTI images — larger segmentation datasets would improve CDR accuracy
+- Binary classification only — severity grading (early/moderate/advanced) not yet implemented
+- No prospective clinical validation — research use only
+- Cross-dataset distribution shift not explicitly modelled
+
+---
+
+## Future Work
+
+- Vision Transformer backbone (ViT-B/16) for improved long-range disc boundary modelling
+- Multi-task learning: joint classification and CDR regression on a shared encoder
+- Domain adaptation for cross-device generalisation
+- Longitudinal CDR tracking across patient visits
+- Monte Carlo Dropout for calibrated uncertainty quantification
+- GitHub Actions CI/CD — auto-run pytest on every push
+
+---
+
+## Citation
+
+If you use this work, please cite:
+
+```
+Majumder S., Bairagi K., Biswas E., Dutta R., Jha P.K. (2025).
+An Interpretable Hybrid Deep Learning System for Glaucoma Detection
+Using Retinal Fundus Images with Structural Analysis and Grad-CAM Explainability.
+Narula Institute of Technology.
+```
+
+---
+
+## Acknowledgements
+
+Datasets: ACRIMA, RIM-ONE DL, EyePACS-AIROGS, DRISHTI-GS1 teams for
+making their data publicly available for research.
+
+---
+
+> **Disclaimer:** This system is a research tool and is not intended for clinical
+> diagnosis. Always consult a qualified ophthalmologist for medical decisions.
