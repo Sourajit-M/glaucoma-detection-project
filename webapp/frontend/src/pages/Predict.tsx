@@ -43,6 +43,15 @@ export default function Predict() {
 
               <UploadZone file={file} onFile={setFile} disabled={isPending} />
 
+              {isPending && (
+                <div style={{ fontFamily: 'var(--font-mono)' }}
+                  className="mt-6 text-xs text-amber-700 bg-amber-50 border border-amber-200
+                    rounded-lg px-4 py-3 tracking-wide flex items-center gap-2 leading-relaxed">
+                  <span className="font-bold text-amber-800">STATUS:</span>
+                  Backend may be waking up from Render sleep. First request can take up to 60-90 seconds.
+                </div>
+              )}
+
               {error && (
                 <div style={{ fontFamily: 'var(--font-mono)' }}
                   className="mt-6 text-xs text-red-600 bg-red-50 border border-red-200
@@ -104,6 +113,25 @@ export default function Predict() {
               <div className="animate-fade-in-up space-y-6">
                 <ResultCard result={data} />
                 <HeatmapViewer images={data.images} />
+              </div>
+            ) : isPending ? (
+              <div className="glass-panel h-[32rem] flex flex-col items-center justify-center
+                 gap-5 border-dashed border-amber-300 bg-amber-50/50">
+                <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center animate-pulse">
+                  <svg viewBox="0 0 48 48" className="w-8 h-8 text-amber-500"
+                    fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M12 24h24" />
+                    <path d="M24 12v24" />
+                    <circle cx="24" cy="24" r="18" />
+                  </svg>
+                </div>
+                <p style={{ fontFamily: 'var(--font-mono)' }}
+                  className="text-xs font-medium tracking-widest text-amber-700">
+                  CONTACTING BACKEND
+                </p>
+                <p className="max-w-md text-center text-sm text-amber-900/80 leading-relaxed">
+                  The server may be resuming after inactivity. Please keep this page open while the request retries automatically.
+                </p>
               </div>
             ) : (
               <div className="glass-panel h-[32rem] flex flex-col items-center justify-center
