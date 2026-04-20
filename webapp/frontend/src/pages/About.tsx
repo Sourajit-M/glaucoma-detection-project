@@ -1,4 +1,5 @@
-import { FileText, Database } from 'lucide-react'
+// import { FileText, Database } from 'lucide-react'
+import { Database } from 'lucide-react'
 import { SiGithub } from 'react-icons/si'
 
 const pipeline = [
@@ -52,13 +53,13 @@ export default function About() {
                 tracking-widest px-5 py-3 rounded-xl shadow-md hover:shadow-[0_8px_20px_rgba(59,130,246,0.3)] hover:-translate-y-0.5 transition-all duration-300">
               <SiGithub size={14} /> GITHUB REPOSITORY
             </a>
-            <a href="https://drive.google.com/file/d/1fqqlqr1JEznhNYMumQ-9fFlXup48C2Lt/view" target='_blank'
+            {/* <a href="https://drive.google.com/file/d/1fqqlqr1JEznhNYMumQ-9fFlXup48C2Lt/view" target='_blank'
               style={{ fontFamily: 'var(--font-mono)' }}
               className="flex items-center gap-2 bg-white/80 border border-gray-200
                 text-xs font-bold tracking-widest px-5 py-3 rounded-xl
                 hover:bg-white hover:border-blue-300 shadow-sm transition-all duration-300 text-gray-700">
               <FileText size={14} className="text-blue-500" /> RESEARCH PAPER
-            </a>
+            </a> */}
           </div>
         </div>
       </div>
